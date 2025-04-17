@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("CLIENT") // "ADMIN", "CLIENT", "TEAM_MEMBER"
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  clientSurveys    Survey[]    @relation("ClientSurveys")
+  teamMemberSurveys Survey[]   @relation("TeamMemberSurveys")
+  responses         Response[]
+}
+
+model Survey {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  frequency     String    @default("MONTHLY") // "MONTHLY", "QUARTERLY", "YEARLY"
+  triggerDate   Int       // Day of month to trigger (1-31)
+  status        String    @default("PENDING") // "PENDING", "IN_PROGRESS", "COMPLETED", "OVERDUE"
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  clientId      String
+  client        User      @relation("ClientSurveys", fields: [clientId], references: [id])
+  teamMemberId  String
+  teamMember    User      @relation("TeamMemberSurveys", fields: [teamMemberId], references: [id])
+  questions     Question[]
+  responses     Response[]
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  text      String
+  type      String   // "TEXT", "NUMBER", "RATING", "BOOLEAN", "MULTIPLE_CHOICE"
+  required  Boolean  @default(true)
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  surveyId  String
+  survey    Survey    @relation(fields: [surveyId], references: [id])
+  responses Answer[]
+}
+
+model Response {
+  id        String   @id @default(cuid())
+  score     Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  surveyId  String
+  survey    Survey    @relation(fields: [surveyId], references: [id])
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  answers   Answer[]
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  text       String?
+  score      Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id])
+  responseId String
+  response   Response @relation(fields: [responseId], references: [id])
+}

@@ -1,61 +1,35 @@
-# Monthly Survey Platform
+# Client Feedback Monthly
 
-A web-based platform for outsourcing agencies to manage monthly performance feedback surveys for their clients.
+A modern web application for managing monthly client feedback surveys. Built with Next.js, Prisma, and Tailwind CSS.
 
 ## Features
 
-- 🔄 Monthly survey scheduling system
-- 📝 Customizable survey templates
-- 📧 Automated email delivery and reminders
-- 📊 Survey response dashboard
-- 👥 Role-based access control (Admin, Client, Team Member)
-- 📈 Feedback analytics and reporting
+- 🔐 Authentication with NextAuth.js
+- 📊 Survey creation and management
+- 👥 Team member management
+- 📝 Client feedback collection
+- 🌓 Dark mode support
+- 📱 Responsive design
+- 🔔 Toast notifications
+- ✨ Modern UI with Tailwind CSS
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14 with TypeScript
-- **Backend**: Next.js API Routes
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: NextAuth.js
-- **Email**: SendGrid
-- **Styling**: Tailwind CSS
-- **Form Handling**: React Hook Form with Zod validation
-- **Data Fetching**: TanStack Query
+- **Framework:** Next.js 14
+- **Database:** SQLite with Prisma
+- **Authentication:** NextAuth.js
+- **Styling:** Tailwind CSS
+- **UI Components:** Radix UI
+- **Form Handling:** React Hook Form
+- **Validation:** Zod
+- **State Management:** React Query
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 18+ and npm
-- PostgreSQL database
-- SendGrid account for email delivery
-
-### Environment Variables
-
-Create a `.env` file in the root directory with the following variables:
-
-```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
-
-# NextAuth
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-secret-key"
-
-# SendGrid
-SENDGRID_API_KEY="your-sendgrid-api-key"
-EMAIL_FROM="noreply@yourdomain.com"
-
-# Cron Job
-CRON_SECRET="your-cron-secret"
-```
-
-### Installation
-
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/monthly-survey-platform.git
-   cd monthly-survey-platform
+   git clone https://github.com/yourusername/client-feedback-monthly.git
+   cd client-feedback-monthly
    ```
 
 2. Install dependencies:
@@ -63,67 +37,33 @@ CRON_SECRET="your-cron-secret"
    npm install
    ```
 
-3. Set up the database:
+3. Set up environment variables:
    ```bash
-   npx prisma generate
-   npx prisma db push
+   cp .env.example .env
    ```
 
-4. Start the development server:
+4. Initialize the database:
+   ```bash
+   npm run db:push
+   npm run db:seed
+   ```
+
+5. Start the development server:
    ```bash
    npm run dev
    ```
 
-## Project Structure
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-```
-src/
-├── app/                    # Next.js app directory
-│   ├── api/               # API routes
-│   │   ├── auth/         # Authentication endpoints
-│   │   ├── surveys/      # Survey management
-│   │   ├── responses/    # Survey responses
-│   │   └── cron/         # Cron job handlers
-│   └── (routes)/         # Page routes
-├── components/            # React components
-│   ├── ui/               # UI components
-│   └── forms/            # Form components
-├── lib/                  # Utility functions
-│   ├── prisma.ts        # Prisma client
-│   ├── auth.ts          # Auth configuration
-│   └── email.ts         # Email utilities
-├── types/               # TypeScript type definitions
-└── validations/         # Zod validation schemas
-```
+## Development
 
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/[...nextauth]` - NextAuth.js endpoints
-
-### Surveys
-- `GET /api/surveys` - List surveys
-- `POST /api/surveys` - Create a new survey
-- `GET /api/surveys/:id` - Get survey details
-- `PUT /api/surveys/:id` - Update survey
-- `DELETE /api/surveys/:id` - Delete survey
-
-### Responses
-- `GET /api/responses` - List responses
-- `POST /api/responses` - Submit a response
-- `GET /api/responses/:id` - Get response details
-
-### Cron Jobs
-- `GET /api/cron/send-reminders` - Send survey reminders
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run db:push` - Push database schema changes
+- `npm run db:seed` - Seed the database
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT
