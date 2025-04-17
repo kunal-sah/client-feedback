@@ -6,18 +6,14 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
-import { Prisma } from "@prisma/client";
+import { type User, type Survey, type Response } from "@prisma/client";
 
-type TeamMember = Prisma.UserGetPayload<{
-  include: {
-    teamMemberSurveys: {
-      include: {
-        client: true;
-        responses: true;
-      };
-    };
-  };
-}>;
+type TeamMember = User & {
+  teamMemberSurveys: (Survey & {
+    client: User;
+    responses: Response[];
+  })[];
+};
 
 export default function TeamPage() {
   const { data: session, status } = useSession();
