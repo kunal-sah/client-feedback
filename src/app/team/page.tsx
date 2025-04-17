@@ -6,14 +6,24 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
-import { type User, type Survey, type Response } from "@prisma/client";
 
-type TeamMember = User & {
-  teamMemberSurveys: (Survey & {
-    client: User;
-    responses: Response[];
-  })[];
-};
+// Define a simpler type that matches the structure we need
+interface TeamMember {
+  id: string;
+  name: string | null;
+  email: string;
+  teamMemberSurveys: Array<{
+    id: string;
+    client: {
+      id: string;
+      name: string | null;
+      email: string;
+    };
+    responses: Array<{
+      id: string;
+    }>;
+  }>;
+}
 
 export default function TeamPage() {
   const { data: session, status } = useSession();

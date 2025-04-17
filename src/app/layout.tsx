@@ -5,12 +5,13 @@ import { Providers } from "@/components/providers";
 import { Nav } from "@/components/nav";
 import { Toaster } from "@/components/ui/toaster";
 import { Footer } from "@/components/footer";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Monthly Survey Platform",
-  description: "A platform for managing monthly performance feedback surveys",
+  title: "Client Feedback Monthly",
+  description: "Monthly client feedback management system",
 };
 
 export default function RootLayout({
@@ -22,16 +23,18 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-background font-sans antialiased`}>
         <Providers>
-          <div className="relative flex min-h-screen flex-col">
-            <Nav />
-            <div className="flex-1">
-              <main className="container mx-auto px-4 py-6">
-                {children}
-              </main>
+          <ErrorBoundary>
+            <div className="relative flex min-h-screen flex-col">
+              <Nav />
+              <div className="flex-1">
+                <main className="container mx-auto px-4 py-8">
+                  {children}
+                </main>
+              </div>
+              <Footer />
             </div>
-            <Footer />
-          </div>
-          <Toaster />
+            <Toaster />
+          </ErrorBoundary>
         </Providers>
       </body>
     </html>

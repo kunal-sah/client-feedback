@@ -28,6 +28,7 @@ model User {
   clientSurveys    Survey[]    @relation("ClientSurveys")
   teamMemberSurveys Survey[]   @relation("TeamMemberSurveys")
   responses         Response[]
+  errorLogs         ErrorLog[]
 }
 
 model Survey {
@@ -90,4 +91,19 @@ model Answer {
   question   Question @relation(fields: [questionId], references: [id])
   responseId String
   response   Response @relation(fields: [responseId], references: [id])
+}
+
+model ErrorLog {
+  id              String   @id @default(cuid())
+  message         String
+  stack           String?
+  componentStack  String?
+  path            String?
+  userId          String?
+  metadata        String?  // Store JSON as string for SQLite
+  createdAt       DateTime @default(now())
+  user            User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
 }

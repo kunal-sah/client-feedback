@@ -1,177 +1,114 @@
-import { format } from "date-fns";
-import { Survey, User, Question, Response, Answer } from "@prisma/client";
+'use client';
+
 import { useSession } from "next-auth/react";
 import { ResponseForm } from "./forms/response-form";
+import { useToast } from "./ui/use-toast";
+import { useState } from "react";
 
-type SurveyWithRelations = Survey & {
-  client: User;
-  teamMember: User;
+type Question = {
+  id: string;
+  text: string;
+  type: "TEXT" | "RATING";
+};
+
+type Survey = {
+  id: string;
+  title: string;
+  description: string | null;
+  client: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
+  teamMember: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
   questions: Question[];
-  responses: (Response & {
-    answers: Answer[];
-    user: User;
-  })[];
+  responses: {
+    id: string;
+    createdAt: Date;
+    score: number | null;
+    user: {
+      id: string;
+      name: string | null;
+      email: string;
+    };
+    answers: {
+      id: string;
+      text: string | null;
+      score: number | null;
+    }[];
+  }[];
 };
 
 interface SurveyDetailProps {
-  survey: SurveyWithRelations;
+  survey: Survey;
 }
 
 export function SurveyDetail({ survey }: SurveyDetailProps) {
   const { data: session } = useSession();
-
-  const canRespond =
-    session?.user.role === "CLIENT" && session.user.id === survey.clientId;
-
-  const hasResponded = survey.responses.some(
-    (response) => response.user.id === session?.user.id
-  );
+  const { toast } = useToast();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">{survey.title}</h1>
+        <h2 className="text-2xl font-bold">{survey.title}</h2>
         {survey.description && (
-          <p className="mt-2 text-gray-500">{survey.description}</p>
+          <p className="text-gray-600 mt-2">{survey.description}</p>
         )}
-        <div className="mt-4 flex items-center space-x-4 text-sm text-gray-500">
-          <p>Created {format(new Date(survey.createdAt), "MMM d, yyyy")}</p>
-          <p>•</p>
-          <p>
-            Status:{" "}
-            <span
-              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                survey.status === "COMPLETED"
-                  ? "bg-green-100 text-green-800"
-                  : survey.status === "IN_PROGRESS"
-                  ? "bg-yellow-100 text-yellow-800"
-                  : "bg-gray-100 text-gray-800"
-              }`}
-            >
-              {survey.status}
-            </span>
-          </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <h3 className="font-semibold">Client</h3>
+          <p>{survey.client.name || survey.client.email}</p>
+        </div>
+        <div>
+          <h3 className="font-semibold">Team Member</h3>
+          <p>{survey.teamMember.name || survey.teamMember.email}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Survey Details
-            </h3>
-          </div>
-          <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Client</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {survey.client.name || survey.client.email}
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Team Member</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {survey.teamMember.name || survey.teamMember.email}
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">Frequency</dt>
-                <dd className="mt-1 text-sm text-gray-900">{survey.frequency}</dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Trigger Date
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  Day {survey.triggerDate} of the month
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Response Summary
-            </h3>
-          </div>
-          <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Total Responses
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {survey.responses.length}
-                </dd>
-              </div>
-              <div className="sm:col-span-1">
-                <dt className="text-sm font-medium text-gray-500">
-                  Average Score
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {survey.responses.length > 0
-                    ? (
-                        survey.responses.reduce(
-                          (acc, response) => acc + (response.score || 0),
-                          0
-                        ) / survey.responses.length
-                      ).toFixed(1)
-                    : "N/A"}
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-      </div>
-
-      {canRespond && !hasResponded && (
-        <div className="bg-white shadow sm:rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Submit Your Response
-            </h3>
-            <div className="mt-5">
-              <ResponseForm survey={survey} />
+      <div>
+        <h3 className="font-semibold mb-4">Questions</h3>
+        <div className="space-y-4">
+          {survey.questions.map((question) => (
+            <div key={question.id} className="p-4 border rounded-lg">
+              <p className="font-medium">{question.text}</p>
+              <p className="text-sm text-gray-500">Type: {question.type}</p>
             </div>
-          </div>
+          ))}
+        </div>
+      </div>
+
+      {session?.user && (
+        <div>
+          <h3 className="font-semibold mb-4">Submit Response</h3>
+          <ResponseForm survey={survey} />
         </div>
       )}
 
       {survey.responses.length > 0 && (
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Previous Responses
-            </h3>
-          </div>
-          <div className="border-t border-gray-200">
-            <ul className="divide-y divide-gray-200">
-              {survey.responses.map((response) => (
-                <li key={response.id} className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">
-                        {response.user.name || response.user.email}
-                      </p>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Submitted{" "}
-                        {format(new Date(response.createdAt), "MMM d, yyyy")}
-                      </p>
-                    </div>
-                    {response.score && (
-                      <div className="ml-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Score: {response.score}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
+        <div>
+          <h3 className="font-semibold mb-4">Previous Responses</h3>
+          <div className="space-y-4">
+            {survey.responses.map((response) => (
+              <div key={response.id} className="p-4 border rounded-lg">
+                <div className="flex justify-between items-center">
+                  <p>
+                    By: {response.user.name || response.user.email}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(response.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                {response.score && (
+                  <p className="mt-2">Score: {response.score}</p>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}

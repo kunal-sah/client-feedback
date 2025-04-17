@@ -26,6 +26,7 @@ export async function POST(req: Request) {
         status: "DRAFT",
         clientId,
         createdById: session.user.id,
+        triggerDate: Math.floor(Date.now() / 1000),
       },
     });
 
