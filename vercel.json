@@ -1,0 +1,18 @@
+{
+  "buildCommand": "prisma generate && next build",
+  "devCommand": "next dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["sfo1"],
+  "env": {
+    "NEXTAUTH_URL": "https://client-feedback-monthly.vercel.app",
+    "NEXTAUTH_SECRET": "@nextauth_secret",
+    "DATABASE_URL": "@database_url",
+    "SENDGRID_API_KEY": "@sendgrid_api_key",
+    "EMAIL_FROM": "@email_from",
+    "EMAIL_SERVER_HOST": "@email_server_host",
+    "EMAIL_SERVER_PORT": "@email_server_port",
+    "EMAIL_SERVER_USER": "@email_server_user",
+    "EMAIL_SERVER_PASSWORD": "@email_server_password"
+  }
+} 
