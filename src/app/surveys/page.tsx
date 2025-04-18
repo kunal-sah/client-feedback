@@ -4,6 +4,25 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { SurveyList } from "@/components/survey-list";
 import { CreateSurveyButton } from "@/components/create-survey-button";
+import React from "react";
+
+interface Client {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface Team {
+  id: string;
+  name: string;
+}
+
+interface UserWithRelations {
+  id: string;
+  role: string;
+  clients: Client[];
+  team: Team | null;
+}
 
 export default async function SurveysPage() {
   const session = await getServerSession(authOptions);
@@ -12,14 +31,40 @@ export default async function SurveysPage() {
     redirect("/login");
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    include: {
+      clients: true,
+      team: true,
+    },
+  }) as UserWithRelations | null;
+
+  if (!user) {
+    redirect("/login");
+  }
+
   const surveys = await prisma.survey.findMany({
     where: {
-      ...(session.user.role === "CLIENT" && { clientId: session.user.id }),
-      ...(session.user.role === "TEAM_MEMBER" && { teamMemberId: session.user.id }),
+      OR: [
+        { clientId: { in: user.clients.map((client: Client) => client.id) } },
+        { teamId: user.team?.id },
+      ],
     },
     include: {
-      client: true,
-      teamMember: true,
+      client: {
+        select: {
+          id: true,
+          name: true,
+          email: true
+        }
+      },
+      teamMember: {
+        select: {
+          id: true,
+          name: true,
+          email: true
+        }
+      },
       questions: true,
       responses: {
         include: {
@@ -36,7 +81,7 @@ export default async function SurveysPage() {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Surveys</h1>
-        {session.user.role === "ADMIN" && <CreateSurveyButton />}
+        {user.role === "ADMIN" && <CreateSurveyButton />}
       </div>
       <SurveyList surveys={surveys} />
     </main>

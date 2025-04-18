@@ -53,7 +53,7 @@ export function ClientForm({ initialData, onSubmit }: ClientFormProps) {
       });
     } catch (error) {
       toast({
-        variant: "destructive",
+        status: "error",
         title: "Error",
         description: "An error occurred. Please try again.",
       });

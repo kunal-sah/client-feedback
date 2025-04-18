@@ -1,9 +1,10 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { ArrowRight, BarChart3, MessageSquare, Users } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import React from "react";
+import { authOptions } from "../lib/auth";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -27,12 +28,12 @@ export default async function Home() {
               Collect, analyze, and act on feedback to drive continuous improvement.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Button asChild size="lg" className="rounded-full">
+              <Button asChild>
                 <Link href="/login">
                   Get Started <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="rounded-full" asChild>
+              <Button variant="outline" asChild>
                 <Link href="#features">Learn More</Link>
               </Button>
             </div>
@@ -97,29 +98,23 @@ export default async function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <div className="p-6 bg-muted rounded-2xl">
               <p className="text-lg mb-4">
-                "This platform has transformed how we handle client feedback. The insights we've gained are invaluable."
+                "This platform has revolutionized how we collect and act on client feedback. The insights we've gained are invaluable."
               </p>
               <div className="flex items-center">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mr-4">
-                  <span className="text-primary font-semibold">JD</span>
-                </div>
-                <div>
-                  <p className="font-semibold">John Doe</p>
-                  <p className="text-sm text-muted-foreground">CEO, TechCorp</p>
+                <div className="ml-4">
+                  <p className="font-semibold">Sarah Johnson</p>
+                  <p className="text-sm text-muted-foreground">Product Manager, TechCorp</p>
                 </div>
               </div>
             </div>
             <div className="p-6 bg-muted rounded-2xl">
               <p className="text-lg mb-4">
-                "The analytics dashboard gives us exactly what we need to make data-driven decisions. Highly recommended!"
+                "The analytics dashboard gives us clear visibility into client satisfaction trends. It's become an essential part of our business."
               </p>
               <div className="flex items-center">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mr-4">
-                  <span className="text-primary font-semibold">AS</span>
-                </div>
-                <div>
-                  <p className="font-semibold">Alice Smith</p>
-                  <p className="text-sm text-muted-foreground">Product Manager, InnovateCo</p>
+                <div className="ml-4">
+                  <p className="font-semibold">Michael Chen</p>
+                  <p className="text-sm text-muted-foreground">CEO, InnovateCo</p>
                 </div>
               </div>
             </div>
@@ -136,8 +131,8 @@ export default async function Home() {
           <p className="text-lg mb-8 opacity-90">
             Join thousands of companies already using our platform
           </p>
-          <Button size="lg" variant="secondary" className="rounded-full" asChild>
-            <Link href="/login">
+          <Button size="lg" variant="secondary" className="rounded-full">
+            <Link href="/login" className="flex items-center">
               Get Started Now <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>

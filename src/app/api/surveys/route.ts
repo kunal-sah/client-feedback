@@ -7,47 +7,82 @@ import { surveySchema } from "@/lib/validations/survey";
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { title, description, clientId } = body;
+    const { title, clientId, questions } = await req.json();
 
     if (!title || !clientId) {
-      return new NextResponse("Missing required fields", { status: 400 });
+      return NextResponse.json(
+        { error: "Title and client ID are required" },
+        { status: 400 }
+      );
+    }
+
+    // Get the user's team
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: { team: true },
+    });
+
+    if (!user?.team) {
+      return NextResponse.json(
+        { error: "User must be part of a team" },
+        { status: 400 }
+      );
     }
 
     const survey = await prisma.survey.create({
       data: {
         title,
-        description,
-        status: "DRAFT",
         clientId,
-        createdById: session.user.id,
+        teamId: user.team.id,
+        teamMemberId: session.user.id,
         triggerDate: Math.floor(Date.now() / 1000),
+        questions: {
+          create: questions?.map((q: any) => ({
+            text: q.text,
+            type: q.type,
+            required: q.required ?? true,
+            order: q.order ?? 0,
+          })) || [],
+        },
+      },
+      include: {
+        client: true,
+        team: true,
+        teamMember: true,
+        questions: true,
       },
     });
 
     return NextResponse.json(survey);
   } catch (error) {
-    console.error("[SURVEYS_POST]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    console.error("Error creating survey:", error);
+    return NextResponse.json(
+      { error: "Failed to create survey" },
+      { status: 500 }
+    );
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const surveys = await prisma.survey.findMany({
+      where: {
+        teamMemberId: session.user.id,
+      },
       include: {
         client: true,
+        team: true,
+        teamMember: true,
+        questions: true,
         responses: true,
       },
       orderBy: {
@@ -57,7 +92,10 @@ export async function GET() {
 
     return NextResponse.json(surveys);
   } catch (error) {
-    console.error("[SURVEYS_GET]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    console.error("Error fetching surveys:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch surveys" },
+      { status: 500 }
+    );
   }
 } 

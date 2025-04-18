@@ -5,66 +5,67 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import React from "react";
 
-type Client = {
+type Team = {
   id: string;
   name: string;
 };
 
-export default function ClientsPage() {
-  const [clients, setClients] = useState<Client[]>([]);
+export default function TeamsPage() {
+  const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchClients = async () => {
+    const fetchTeams = async () => {
       try {
-        const response = await fetch("/api/clients");
-        if (!response.ok) throw new Error("Failed to fetch clients");
+        const response = await fetch("/api/teams");
+        if (!response.ok) throw new Error("Failed to fetch teams");
         const data = await response.json();
-        setClients(data);
+        setTeams(data);
       } catch (error) {
         toast({
           title: "Error",
-          description: "Failed to load clients",
+          description: "Failed to load teams",
         });
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchClients();
+    fetchTeams();
   }, [toast]);
 
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Clients</h1>
-        <Link href="/clients/new">
-          <Button>Add New Client</Button>
+        <h1 className="text-3xl font-bold">Teams</h1>
+        <Link href="/teams/new">
+          <Button>Add New Team</Button>
         </Link>
       </div>
 
       {isLoading ? (
-        <p>Loading clients...</p>
-      ) : clients.length === 0 ? (
+        <p>Loading teams...</p>
+      ) : teams.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center">
-            <p className="text-muted-foreground">No clients found.</p>
-            <Link href="/clients/new">
-              <Button className="mt-4">Add Your First Client</Button>
+            <p className="text-muted-foreground">No teams found.</p>
+            <Link href="/teams/new">
+              <Button className="mt-4">Add Your First Team</Button>
             </Link>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {clients.map((client) => (
-            <Card key={client.id}>
+          {teams.map((team) => (
+            <Card key={team.id}>
               <CardHeader>
-                <CardTitle>{client.name}</CardTitle>
+                <CardTitle>{team.name}</CardTitle>
               </CardHeader>
               <CardContent>
-                <Link href={`/clients/${client.id}`}>
+                <Link href={`/teams/${team.id}`}>
                   <Button variant="outline" className="w-full">
                     View Details
                   </Button>

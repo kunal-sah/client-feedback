@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { SurveyDetail } from "@/components/survey-detail";
+import React from "react";
 
 interface SurveyPageProps {
   params: {

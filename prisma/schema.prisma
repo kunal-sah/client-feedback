@@ -19,13 +19,14 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
-  password      String?
-  role          String    @default("CLIENT") // "ADMIN", "CLIENT", "TEAM_MEMBER"
+  password      String
+  role          String    @default("USER") // "ADMIN", "USER"
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  clientSurveys    Survey[]    @relation("ClientSurveys")
+  team          Team?
+  clients       Client[]
   teamMemberSurveys Survey[]   @relation("TeamMemberSurveys")
   responses         Response[]
   errorLogs         ErrorLog[]
@@ -43,7 +44,9 @@ model Survey {
 
   // Relations
   clientId      String
-  client        User      @relation("ClientSurveys", fields: [clientId], references: [id])
+  client        Client    @relation(fields: [clientId], references: [id])
+  teamId        String
+  team          Team      @relation(fields: [teamId], references: [id])
   teamMemberId  String
   teamMember    User      @relation("TeamMemberSurveys", fields: [teamMemberId], references: [id])
   questions     Question[]
@@ -106,4 +109,29 @@ model ErrorLog {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  surveys   Survey[]
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  surveys   Survey[]
 }

@@ -2,6 +2,9 @@
 
 import { LoginForm } from "@/components/forms/login-form";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import React from "react";
 
 export default function LoginPage() {
   return (
@@ -43,6 +46,14 @@ export default function LoginPage() {
             </p>
           </div>
           <LoginForm />
+          <div className="text-center text-sm">
+            <span className="text-muted-foreground">Don't have an account? </span>
+            <Link href="/signup">
+              <Button variant="link" className="p-0 h-auto font-normal">
+                Sign up
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

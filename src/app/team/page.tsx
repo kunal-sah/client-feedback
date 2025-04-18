@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
+import React from "react";
 
 // Define a simpler type that matches the structure we need
 interface TeamMember {

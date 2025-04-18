@@ -18,6 +18,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import React from "react";
 
 type SurveyWithResponses = {
   id: string;

@@ -1,90 +1,92 @@
 import { PrismaClient } from "@prisma/client";
-import { hash } from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create admin user
-  const adminPassword = await hash("admin123", 12);
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@example.com" },
-    update: {},
-    create: {
-      email: "admin@example.com",
-      name: "Admin User",
-      password: adminPassword,
-      role: "ADMIN",
-    },
-  });
-
-  // Create client user
-  const clientPassword = await hash("client123", 12);
-  const client = await prisma.user.upsert({
-    where: { email: "client@example.com" },
-    update: {},
-    create: {
-      email: "client@example.com",
-      name: "Client User",
-      password: clientPassword,
-      role: "CLIENT",
-    },
-  });
-
-  // Create team member user
-  const teamMemberPassword = await hash("team123", 12);
-  const teamMember = await prisma.user.upsert({
-    where: { email: "team@example.com" },
-    update: {},
-    create: {
-      email: "team@example.com",
-      name: "Team Member",
-      password: teamMemberPassword,
-      role: "TEAM_MEMBER",
-    },
-  });
-
-  // Create a sample survey
-  const survey = await prisma.survey.create({
-    data: {
-      title: "Monthly Performance Review - March 2024",
-      description: "Please provide feedback for your team member's performance in March 2024.",
-      frequency: "MONTHLY",
-      triggerDate: 25,
-      status: "PENDING",
-      clientId: client.id,
-      teamMemberId: teamMember.id,
-      questions: {
-        create: [
-          {
-            text: "How satisfied are you with the team member's performance this month?",
-            type: "RATING",
-            required: true,
-            order: 0,
-          },
-          {
-            text: "What went well?",
-            type: "TEXT",
-            required: true,
-            order: 1,
-          },
-          {
-            text: "What could be improved?",
-            type: "TEXT",
-            required: true,
-            order: 2,
-          },
-          {
-            text: "Would you like to continue working with this team member?",
-            type: "BOOLEAN",
-            required: true,
-            order: 3,
-          },
-        ],
+  try {
+    // Create test user
+    const hashedPassword = await bcrypt.hash('password123', 10);
+    const user = await prisma.user.upsert({
+      where: { email: 'test@example.com' },
+      update: {},
+      create: {
+        name: 'Test User',
+        email: 'test@example.com',
+        password: hashedPassword,
+        role: 'ADMIN',
       },
-    },
-  });
+    });
 
-  console.log({ admin, client, teamMember, survey });
+    console.log('Created/Updated test user:', user);
+
+    // Create test team
+    const team = await prisma.team.upsert({
+      where: { userId: user.id },
+      update: {},
+      create: {
+        name: 'Test Team',
+        userId: user.id,
+      },
+    });
+
+    console.log('Created/Updated test team:', team);
+
+    // Create test client
+    const client = await prisma.client.upsert({
+      where: { userId: user.id },
+      update: {},
+      create: {
+        name: 'Test Client',
+        email: 'client@example.com',
+        userId: user.id,
+      },
+    });
+
+    console.log('Created/Updated test client:', client);
+
+    // Create test survey
+    const survey = await prisma.survey.upsert({
+      where: { 
+        id: 'test-survey-id',
+      },
+      update: {},
+      create: {
+        id: 'test-survey-id',
+        title: 'Test Survey',
+        description: 'A test survey for development',
+        frequency: 'MONTHLY',
+        triggerDate: 1,
+        status: 'PENDING',
+        clientId: client.id,
+        teamId: team.id,
+        teamMemberId: user.id,
+        questions: {
+          create: [
+            {
+              text: 'How satisfied are you with our service?',
+              type: 'RATING',
+              required: true,
+              order: 1,
+            },
+            {
+              text: 'What can we improve?',
+              type: 'TEXT',
+              required: false,
+              order: 2,
+            },
+          ],
+        },
+      },
+    });
+
+    console.log('Created/Updated test survey:', survey);
+
+    console.log('Database seeded successfully');
+  } catch (error) {
+    console.error('Error seeding database:', error);
+    throw error;
+  }
 }
 
 main()

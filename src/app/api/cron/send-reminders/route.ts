@@ -27,9 +27,8 @@ export async function GET(req: Request) {
         teamMember: true,
       },
     });
-
     // Send reminders for each survey
-    const emailPromises = surveys.map(async (survey) => {
+    const emailPromises = surveys.map(async (survey: { id: string, client: { email: string, name: string }, teamMember: { name: string } }) => {
       const lastResponse = await prisma.response.findFirst({
         where: {
           surveyId: survey.id,
