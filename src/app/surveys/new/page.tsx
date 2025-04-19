@@ -76,9 +76,11 @@ export default function NewSurveyPage() {
         const data = await response.json();
         setTeams(data);
       } catch (error) {
+        console.error("Error fetching teams:", error);
         toast({
           title: "Error",
           description: "Failed to load teams",
+          variant: "destructive",
         });
       }
     };

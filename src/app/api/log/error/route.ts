@@ -3,34 +3,23 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    const errorLog = await request.json();
+    const { message, stack, componentStack, metadata } = await req.json();
 
-    // Add user ID if available
-    if (session?.user?.id) {
-      errorLog.userId = session.user.id;
-    }
-
-    // Store error in database
-    await prisma.errorLog.create({
+    const errorLog = await prisma.errorLog.create({
       data: {
-        message: errorLog.message,
-        stack: errorLog.stack,
-        componentStack: errorLog.componentStack,
-        path: errorLog.path,
-        userId: errorLog.userId,
-        metadata: errorLog.metadata,
+        message,
+        stack,
+        componentStack,
+        metadata: metadata ? JSON.stringify(metadata) : null,
+        userId: session?.user?.id,
+        path: req.headers.get("referer") || null,
       },
     });
 
-    // In development, also log to console
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error logged:', errorLog);
-    }
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, errorLog });
   } catch (error) {
     console.error('Error logging failed:', error);
     return NextResponse.json(

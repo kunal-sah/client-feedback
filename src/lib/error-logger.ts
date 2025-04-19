@@ -57,20 +57,16 @@ class ErrorLogger {
       metadata: metadata ? JSON.stringify(metadata) : undefined,
     };
 
-    // In development, log to console
     if (this.isDevelopment) {
       console.error('Error logged:', errorLog);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
 
-    // Send to server
     await this.sendToServer(errorLog);
-
-    // Show toast notification for user
-    toast({
-      title: 'Error',
-      description: error.message,
-      variant: 'destructive',
-    });
   }
 }
 

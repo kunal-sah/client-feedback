@@ -1,89 +1,107 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { SurveyList } from "@/components/survey-list";
-import { CreateSurveyButton } from "@/components/create-survey-button";
-import React from "react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-interface Client {
+interface SurveyWithRelations {
   id: string;
-  name: string;
-  email: string;
-}
-
-interface Team {
-  id: string;
-  name: string;
-}
-
-interface UserWithRelations {
-  id: string;
-  role: string;
-  clients: Client[];
-  team: Team | null;
+  title: string;
+  description: string | null;
+  status: "DRAFT" | "IN_PROGRESS" | "COMPLETED" | "ARCHIVED";
+  frequency: string;
+  createdAt: Date;
+  updatedAt: Date;
+  clientId: string;
+  userId: string;
+  companyId: string;
+  client: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+  user: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  } | null;
+  company: {
+    id: string;
+    name: string;
+  } | null;
+  questions: Array<{
+    id: string;
+    title: string;
+    type: string;
+    options: string | null;
+    required: boolean;
+  }>;
+  responses: Array<{
+    id: string;
+    createdAt: Date;
+    answers: any;
+  }>;
 }
 
 export default async function SurveysPage() {
   const session = await getServerSession(authOptions);
+  const userRole = session?.user?.role;
+  const userId = session?.user?.id;
 
-  if (!session) {
-    redirect("/login");
-  }
+  // Get the user with company information
+  const user = userId ? await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true, companyId: true }
+  }) : null;
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: {
-      clients: true,
-      team: true,
-    },
-  }) as UserWithRelations | null;
-
-  if (!user) {
-    redirect("/login");
+  // Build the where clause based on user role
+  let whereClause = {};
+  if (userRole === "COMPANY_ADMIN" && user?.companyId) {
+    whereClause = { companyId: user.companyId };
+  } else if (userRole === "COMPANY_TEAM_MEMBER" && userId) {
+    whereClause = { userId };
   }
 
   const surveys = await prisma.survey.findMany({
-    where: {
-      OR: [
-        { clientId: { in: user.clients.map((client: Client) => client.id) } },
-        { teamId: user.team?.id },
-      ],
-    },
+    where: whereClause,
     include: {
       client: {
         select: {
           id: true,
           name: true,
-          email: true
-        }
+          email: true,
+        },
       },
-      teamMember: {
+      user: {
         select: {
           id: true,
           name: true,
-          email: true
-        }
-      },
-      questions: true,
-      responses: {
-        include: {
-          answers: true,
+          email: true,
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
+      company: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      questions: true,
+      responses: true,
     },
   });
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Surveys</h1>
-        {user.role === "ADMIN" && <CreateSurveyButton />}
+        {userRole === "COMPANY_ADMIN" && (
+          <Link href="/surveys/new">
+            <Button>Create Survey</Button>
+          </Link>
+        )}
       </div>
       <SurveyList surveys={surveys} />
-    </main>
+    </div>
   );
 } 

@@ -1,75 +1,131 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical, Pencil, Trash } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Survey, User, Question, Response, Answer } from "@prisma/client";
 
-type SurveyWithRelations = Survey & {
-  client: User;
-  teamMember: User;
-  questions: Question[];
-  responses: (Response & {
-    answers: Answer[];
-  })[];
-};
+interface SurveyWithRelations {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  frequency: string;
+  createdAt: Date;
+  updatedAt: Date;
+  clientId: string;
+  userId: string;
+  companyId: string;
+  client: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+  user: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  } | null;
+  company: {
+    id: string;
+    name: string;
+  } | null;
+  questions: Array<{
+    id: string;
+    title: string;
+    type: string;
+    options: string | null;
+    required: boolean;
+  }>;
+  Response: Array<{
+    id: string;
+    createdAt: Date;
+    answers: any;
+  }>;
+}
 
 interface SurveyListProps {
   surveys: SurveyWithRelations[];
 }
 
 export function SurveyList({ surveys }: SurveyListProps) {
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleDelete = async (surveyId: string) => {
+    try {
+      const response = await fetch(`/api/surveys/${surveyId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete survey");
+      }
+
+      toast({
+        title: "Success",
+        description: "Survey deleted successfully",
+      });
+
+      router.refresh();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete survey",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-md">
-      <ul className="divide-y divide-gray-200">
-        {surveys.map((survey) => (
-          <li key={survey.id}>
-            <Link
-              href={`/surveys/${survey.id}`}
-              className="block hover:bg-gray-50"
-            >
-              <div className="px-4 py-4 sm:px-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-blue-600 truncate">
-                      {survey.title}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {survey.description || "No description"}
-                    </p>
-                  </div>
-                  <div className="ml-4 flex-shrink-0">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        survey.status === "COMPLETED"
-                          ? "bg-green-100 text-green-800"
-                          : survey.status === "IN_PROGRESS"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {survey.status}
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-2 sm:flex sm:justify-between">
-                  <div className="sm:flex">
-                    <p className="flex items-center text-sm text-gray-500">
-                      Client: {survey.client.name || survey.client.email}
-                    </p>
-                    <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
-                      Team Member: {survey.teamMember.name || survey.teamMember.email}
-                    </p>
-                  </div>
-                  <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                    <p>
-                      Created{" "}
-                      {format(new Date(survey.createdAt), "MMM d, yyyy")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <div className="space-y-4">
+      {surveys.map((survey) => (
+        <div
+          key={survey.id}
+          className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
+        >
+          <div>
+            <h3 className="text-lg font-semibold">{survey.title}</h3>
+            <p className="text-sm text-gray-500">
+              Client: {survey.client?.name || "Not assigned"}
+            </p>
+            <p className="text-sm text-gray-500">
+              Created: {format(new Date(survey.createdAt), "PPP")}
+            </p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href={`/surveys/${survey.id}`}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDelete(survey.id)}
+                className="text-red-600"
+              >
+                <Trash className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ))}
     </div>
   );
 } 

@@ -9,8 +9,9 @@ import { authOptions } from "../lib/auth";
 export default async function Home() {
   const session = await getServerSession(authOptions);
 
-  if (session) {
-    redirect("/surveys");
+  // Only redirect to dashboard if user is logged in
+  if (session?.user) {
+    redirect("/dashboard");
   }
 
   return (
@@ -98,23 +99,29 @@ export default async function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <div className="p-6 bg-muted rounded-2xl">
               <p className="text-lg mb-4">
-                "This platform has revolutionized how we collect and act on client feedback. The insights we've gained are invaluable."
+                "This platform has transformed how we collect and act on client feedback. The insights have been invaluable."
               </p>
               <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-primary/10" />
+                </div>
                 <div className="ml-4">
                   <p className="font-semibold">Sarah Johnson</p>
-                  <p className="text-sm text-muted-foreground">Product Manager, TechCorp</p>
+                  <p className="text-sm text-muted-foreground">CEO, TechStart</p>
                 </div>
               </div>
             </div>
             <div className="p-6 bg-muted rounded-2xl">
               <p className="text-lg mb-4">
-                "The analytics dashboard gives us clear visibility into client satisfaction trends. It's become an essential part of our business."
+                "The analytics dashboard gives us clear visibility into client satisfaction trends. Highly recommended!"
               </p>
               <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-primary/10" />
+                </div>
                 <div className="ml-4">
                   <p className="font-semibold">Michael Chen</p>
-                  <p className="text-sm text-muted-foreground">CEO, InnovateCo</p>
+                  <p className="text-sm text-muted-foreground">Director, GrowthLabs</p>
                 </div>
               </div>
             </div>

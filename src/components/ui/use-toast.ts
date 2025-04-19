@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from "react";
-
 import type {
   ToastActionElement,
   ToastProps,
@@ -139,7 +138,13 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">;
 
-function toast({ ...props }: Toast) {
+export type ToastFunction = (props: Toast) => {
+  id: string;
+  dismiss: () => void;
+  update: (props: ToasterToast) => void;
+};
+
+const toast: ToastFunction = ({ ...props }) => {
   const id = genId();
 
   const update = (props: ToasterToast) =>
@@ -155,7 +160,7 @@ function toast({ ...props }: Toast) {
       ...props,
       id,
       open: true,
-      onOpenChange: (open: boolean) => {
+      onOpenChange: (open) => {
         if (!open) dismiss();
       },
     },
@@ -166,7 +171,7 @@ function toast({ ...props }: Toast) {
     dismiss,
     update,
   };
-}
+};
 
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState);

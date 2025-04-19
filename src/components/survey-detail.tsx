@@ -98,15 +98,9 @@ export function SurveyDetail({ survey }: SurveyDetailProps) {
               <div key={response.id} className="p-4 border rounded-lg">
                 <div className="flex justify-between items-center">
                   <p>
-                    By: {response.user.name || response.user.email}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {new Date(response.createdAt).toLocaleDateString()}
+                    {response.user.name || response.user.email} - {new Date(response.createdAt).toLocaleDateString()}
                   </p>
                 </div>
-                {response.score && (
-                  <p className="mt-2">Score: {response.score}</p>
-                )}
               </div>
             ))}
           </div>

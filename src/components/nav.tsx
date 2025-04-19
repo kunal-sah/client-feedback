@@ -11,34 +11,68 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, BarChart } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface NavLink {
+  name: string;
+  href: string;
+}
+
+interface Navigation {
+  superAdmin: NavLink[];
+  companyAdmin: NavLink[];
+  teamMember: NavLink[];
+  client: NavLink[];
+}
+
+const navigation: Navigation = {
+  superAdmin: [
+    { name: "Dashboard", href: "/super-admin/dashboard" },
+    { name: "Companies", href: "/super-admin/companies" },
+    { name: "Users", href: "/super-admin/users" },
+    { name: "Analytics", href: "/super-admin/analytics" },
+    { name: "Roles", href: "/super-admin/roles" },
+  ],
+  companyAdmin: [
+    { name: "Dashboard", href: "/dashboard" },
+    { name: "Clients", href: "/clients" },
+    { name: "Team", href: "/team" },
+    { name: "Surveys", href: "/surveys" },
+    { name: "Settings", href: "/settings" },
+  ],
+  teamMember: [
+    { name: "Dashboard", href: "/dashboard" },
+    { name: "My Clients", href: "/my-clients" },
+    { name: "Surveys", href: "/surveys" },
+  ],
+  client: [
+    { name: "Dashboard", href: "/dashboard" },
+    { name: "My Feedback", href: "/my-feedback" },
+  ],
+};
 
 export function Nav() {
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  const isActive = (path: string) => {
-    return pathname === path;
-  };
+  if (!session?.user) return null;
 
-  if (!session) {
-    return (
-      <nav className="border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <Link href="/" className="flex items-center font-medium">
-                Client Feedback
-              </Link>
-            </div>
-            <div className="flex items-center">
-              <Button variant="ghost" onClick={() => signIn()}>
-                Sign in
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-    );
+  const role = session.user.role;
+  let links: NavLink[] = [];
+
+  switch (role) {
+    case "SUPER_ADMIN":
+      links = navigation.superAdmin;
+      break;
+    case "COMPANY_ADMIN":
+      links = navigation.companyAdmin;
+      break;
+    case "TEAM_MEMBER":
+      links = navigation.teamMember;
+      break;
+    case "CLIENT":
+      links = navigation.client;
+      break;
   }
 
   return (
@@ -46,53 +80,23 @@ export function Nav() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex space-x-8">
-            <Link
-              href="/"
-              className="flex items-center font-medium"
-            >
+            <Link href="/" className="flex items-center font-medium">
               Client Feedback
             </Link>
-            <Link
-              href="/surveys"
-              className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                isActive("/surveys")
-                  ? "border-b-2 border-primary text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Surveys
-            </Link>
-            <Link
-              href="/clients"
-              className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                isActive("/clients")
-                  ? "border-b-2 border-primary text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Clients
-            </Link>
-            <Link
-              href="/team"
-              className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                isActive("/team")
-                  ? "border-b-2 border-primary text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Team
-            </Link>
-            <Link
-              href="/reports"
-              className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
-                isActive("/reports")
-                  ? "border-b-2 border-primary text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <BarChart className="w-4 h-4 mr-2" />
-              Reports
-            </Link>
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "inline-flex items-center px-1 pt-1 text-sm font-medium",
+                  pathname === link.href
+                    ? "border-b-2 border-primary text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {link.name}
+              </Link>
+            ))}
           </div>
           <div className="flex items-center">
             <DropdownMenu>

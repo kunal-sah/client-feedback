@@ -54,4 +54,89 @@ export async function PATCH(
     console.error("[SURVEY_PATCH]", error);
     return new NextResponse("Internal error", { status: 500 });
   }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const survey = await prisma.survey.findUnique({
+      where: { id: params.id },
+      select: {
+        clientId: true,
+        teamMemberId: true,
+      },
+    });
+
+    if (!survey) {
+      return new NextResponse("Survey not found", { status: 404 });
+    }
+
+    // Only allow admins or the assigned team member to delete
+    if (
+      session.user.role !== "ADMIN" &&
+      survey.teamMemberId !== session.user.id
+    ) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    // Delete the survey and all related data
+    await prisma.survey.delete({
+      where: { id: params.id },
+    });
+
+    return new NextResponse(null, { status: 204 });
+  } catch (error) {
+    console.error("[SURVEY_DELETE]", error);
+    return new NextResponse("Internal error", { status: 500 });
+  }
+}
+
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const survey = await prisma.survey.findUnique({
+      where: { id: params.id },
+      include: {
+        client: true,
+        teamMember: true,
+        questions: {
+          include: {
+            responses: true
+          }
+        }
+      }
+    });
+
+    if (!survey) {
+      return new NextResponse("Survey not found", { status: 404 });
+    }
+
+    // Only allow admins, assigned team member, or the client to view
+    if (
+      session.user.role !== "ADMIN" &&
+      survey.teamMemberId !== session.user.id &&
+      survey.clientId !== session.user.id
+    ) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    return NextResponse.json(survey);
+  } catch (error) {
+    console.error("[SURVEY_GET]", error);
+    return new NextResponse("Internal error", { status: 500 });
+  }
 } 

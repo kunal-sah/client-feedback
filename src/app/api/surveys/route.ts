@@ -11,49 +11,54 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { title, clientId, questions } = await req.json();
+    const body = await req.json();
+    const { title, description, clientId, teamId } = body;
 
-    if (!title || !clientId) {
+    if (!title || !clientId || !teamId) {
       return NextResponse.json(
-        { error: "Title and client ID are required" },
+        { error: "Title, client ID, and team ID are required" },
         { status: 400 }
       );
     }
 
-    // Get the user's team
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { team: true },
+    // Verify the client exists
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
     });
 
-    if (!user?.team) {
+    if (!client) {
       return NextResponse.json(
-        { error: "User must be part of a team" },
-        { status: 400 }
+        { error: "Client not found" },
+        { status: 404 }
+      );
+    }
+
+    // Verify the team exists
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+    });
+
+    if (!team) {
+      return NextResponse.json(
+        { error: "Team not found" },
+        { status: 404 }
       );
     }
 
     const survey = await prisma.survey.create({
       data: {
         title,
+        description,
         clientId,
-        teamId: user.team.id,
+        teamId,
         teamMemberId: session.user.id,
         triggerDate: Math.floor(Date.now() / 1000),
-        questions: {
-          create: questions?.map((q: any) => ({
-            text: q.text,
-            type: q.type,
-            required: q.required ?? true,
-            order: q.order ?? 0,
-          })) || [],
-        },
+        status: "DRAFT",
       },
       include: {
         client: true,
         team: true,
         teamMember: true,
-        questions: true,
       },
     });
 

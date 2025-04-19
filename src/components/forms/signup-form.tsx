@@ -76,7 +76,7 @@ export function SignUpForm() {
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Something went wrong",
-        variant: "destructive",
+        status: "destructive",
       });
     } finally {
       setIsLoading(false);

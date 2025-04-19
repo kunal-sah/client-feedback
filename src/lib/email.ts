@@ -1,51 +1,102 @@
 import sgMail from "@sendgrid/mail";
 
 if (!process.env.SENDGRID_API_KEY) {
-  throw new Error("SENDGRID_API_KEY is not set");
+  throw new Error("SENDGRID_API_KEY is not set in environment variables");
 }
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-interface SendSurveyEmailParams {
+export interface EmailData {
   to: string;
-  surveyId: string;
-  teamMemberName: string;
-  clientName: string;
+  subject: string;
+  text?: string;
+  html?: string;
+  templateId?: string;
+  dynamicTemplateData?: Record<string, any>;
 }
 
-export async function sendSurveyEmail({
+export async function sendEmail({
   to,
-  surveyId,
-  teamMemberName,
-  clientName,
-}: SendSurveyEmailParams) {
-  const surveyUrl = `${process.env.NEXTAUTH_URL}/surveys/${surveyId}`;
-
-  const msg = {
-    to,
-    from: process.env.EMAIL_FROM!,
-    subject: `Monthly Feedback Survey for ${teamMemberName}`,
-    text: `Hello ${clientName},\n\nThis is a reminder to complete the monthly feedback survey for ${teamMemberName}. Your feedback is important to us and helps us ensure we're providing the best service possible.\n\nPlease click the following link to complete the survey: ${surveyUrl}\n\nThank you for your time and feedback.\n\nBest regards,\nThe Team`,
-    html: `
-      <div>
-        <h2>Monthly Feedback Survey</h2>
-        <p>Hello ${clientName},</p>
-        <p>This is a reminder to complete the monthly feedback survey for <strong>${teamMemberName}</strong>. Your feedback is important to us and helps us ensure we're providing the best service possible.</p>
-        <p>Please click the button below to complete the survey:</p>
-        <a href="${surveyUrl}" style="display: inline-block; padding: 12px 24px; background-color: #0070f3; color: white; text-decoration: none; border-radius: 4px; margin: 16px 0;">
-          Complete Survey
-        </a>
-        <p>Thank you for your time and feedback.</p>
-        <p>Best regards,<br>The Team</p>
-      </div>
-    `,
-  };
-
+  subject,
+  text,
+  html,
+  templateId,
+  dynamicTemplateData,
+}: EmailData) {
   try {
+    const msg: any = {
+      to,
+      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@yourdomain.com',
+      subject,
+    };
+
+    // Add content if text or html is provided
+    if (text || html) {
+      msg.content = [];
+      if (text) {
+        msg.content.push({ type: 'text/plain', value: text });
+      }
+      if (html) {
+        msg.content.push({ type: 'text/html', value: html });
+      }
+    }
+
+    // Add template ID and dynamic data if provided
+    if (templateId) {
+      msg.templateId = templateId;
+    }
+    if (dynamicTemplateData) {
+      msg.dynamicTemplateData = dynamicTemplateData;
+    }
+
     await sgMail.send(msg);
     return { success: true };
   } catch (error) {
     console.error("Error sending email:", error);
     return { success: false, error };
   }
-} 
+}
+
+// Email templates
+export const emailTemplates = {
+  welcome: {
+    subject: "Welcome to Our Platform",
+    templateId: "d-welcome-template-id", // Replace with your SendGrid template ID
+  },
+  passwordReset: {
+    subject: "Reset Your Password",
+    templateId: "d-password-reset-template-id",
+  },
+  twoFactorEnabled: {
+    subject: "Two-Factor Authentication Enabled",
+    templateId: "d-2fa-enabled-template-id",
+  },
+  twoFactorDisabled: {
+    subject: "Two-Factor Authentication Disabled",
+    templateId: "d-2fa-disabled-template-id",
+  },
+  newLogin: {
+    subject: "New Login Detected",
+    templateId: "d-new-login-template-id",
+  },
+  surveyInvitation: {
+    subject: "You have a new survey to complete",
+    templateId: "d-survey-invitation-template-id",
+  },
+  surveyReminder: {
+    subject: "Reminder: Complete your survey",
+    templateId: "d-survey-reminder-template-id",
+  },
+  surveyCompleted: {
+    subject: "Survey Completed",
+    templateId: "d-survey-completed-template-id",
+  },
+  clientInvitation: {
+    subject: "You have been invited to join a company",
+    templateId: "d-client-invitation-template-id",
+  },
+  companyInvitation: {
+    subject: "Join our company on the platform",
+    templateId: "d-company-invitation-template-id",
+  },
+}; 

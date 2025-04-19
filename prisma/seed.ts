@@ -20,11 +20,26 @@ async function main() {
 
     console.log('Created/Updated test user:', user);
 
-    // Create test team
-    const team = await prisma.team.upsert({
-      where: { userId: user.id },
+    // Create test company
+    const company = await prisma.company.upsert({
+      where: { id: 'test-company-id' },
       update: {},
       create: {
+        id: 'test-company-id',
+        name: 'Test Company',
+        subscriptionTier: 'FREE',
+        status: 'ACTIVE',
+      },
+    });
+
+    console.log('Created/Updated test company:', company);
+
+    // Create test team
+    const team = await prisma.team.upsert({
+      where: { id: 'test-team-id' },
+      update: {},
+      create: {
+        id: 'test-team-id',
         name: 'Test Team',
         userId: user.id,
       },
@@ -34,12 +49,14 @@ async function main() {
 
     // Create test client
     const client = await prisma.client.upsert({
-      where: { userId: user.id },
+      where: { id: 'test-client-id' },
       update: {},
       create: {
+        id: 'test-client-id',
         name: 'Test Client',
         email: 'client@example.com',
         userId: user.id,
+        companyId: company.id,
       },
     });
 
@@ -56,24 +73,21 @@ async function main() {
         title: 'Test Survey',
         description: 'A test survey for development',
         frequency: 'MONTHLY',
-        triggerDate: 1,
         status: 'PENDING',
         clientId: client.id,
-        teamId: team.id,
-        teamMemberId: user.id,
+        userId: user.id,
+        companyId: company.id,
         questions: {
           create: [
             {
-              text: 'How satisfied are you with our service?',
+              title: 'How satisfied are you with our service?',
               type: 'RATING',
               required: true,
-              order: 1,
             },
             {
-              text: 'What can we improve?',
+              title: 'What can we improve?',
               type: 'TEXT',
               required: false,
-              order: 2,
             },
           ],
         },

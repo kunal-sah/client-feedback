@@ -5,19 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-
-type Question = {
-  id: string;
-  text: string;
-  type: "TEXT" | "RATING";
-};
-
-type Survey = {
-  id: string;
-  title: string;
-  description: string | null;
-  questions: Question[];
-};
+import { Survey } from "@/types/survey";
 
 const answerSchema = z.object({
   questionId: z.string(),
@@ -87,7 +75,7 @@ export function ResponseForm({ survey }: ResponseFormProps) {
         {survey.questions.map((question, index) => (
           <div key={question.id} className="mb-6 last:mb-0">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {index + 1}. {question.text}
+              {index + 1}. {question.title}
             </label>
             
             {question.type === "TEXT" ? (
@@ -98,16 +86,17 @@ export function ResponseForm({ survey }: ResponseFormProps) {
               />
             ) : (
               <div className="flex items-center space-x-4">
-                <input
-                  type="range"
-                  {...register(`answers.${index}.score`, { valueAsNumber: true })}
-                  min="0"
-                  max="10"
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-                <span className="text-sm text-gray-500 min-w-[2rem] text-center">
-                  {watch(`answers.${index}.score`) || 0}
-                </span>
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+                  <label key={score} className="flex items-center">
+                    <input
+                      type="radio"
+                      {...register(`answers.${index}.score`)}
+                      value={score}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">{score}</span>
+                  </label>
+                ))}
               </div>
             )}
             

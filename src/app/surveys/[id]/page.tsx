@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { SurveyDetail } from "@/components/survey-detail";
 import React from "react";
@@ -25,15 +25,14 @@ export default async function SurveyPage({ params }: SurveyPageProps) {
     },
     include: {
       client: true,
-      teamMember: true,
+      user: true,
       questions: {
         orderBy: {
-          order: "asc",
+          id: "asc",
         },
       },
-      responses: {
+      Response: {
         include: {
-          answers: true,
           user: true,
         },
         orderBy: {
@@ -51,7 +50,7 @@ export default async function SurveyPage({ params }: SurveyPageProps) {
   if (
     session.user.role !== "ADMIN" &&
     session.user.id !== survey.clientId &&
-    session.user.id !== survey.teamMemberId
+    session.user.id !== survey.userId
   ) {
     redirect("/surveys");
   }

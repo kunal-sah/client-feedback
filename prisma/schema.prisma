@@ -1,127 +1,117 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String?    @unique
   emailVerified DateTime?
   image         String?
-  password      String
-  role          String    @default("USER") // "ADMIN", "USER"
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Relations
-  team          Team?
+  password      String?
+  role          String     @default("COMPANY_TEAM_MEMBER")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  companyId     String?
   clients       Client[]
-  teamMemberSurveys Survey[]   @relation("TeamMemberSurveys")
-  responses         Response[]
-  errorLogs         ErrorLog[]
-}
-
-model Survey {
-  id            String    @id @default(cuid())
-  title         String
-  description   String?
-  frequency     String    @default("MONTHLY") // "MONTHLY", "QUARTERLY", "YEARLY"
-  triggerDate   Int       // Day of month to trigger (1-31)
-  status        String    @default("PENDING") // "PENDING", "IN_PROGRESS", "COMPLETED", "OVERDUE"
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Relations
-  clientId      String
-  client        Client    @relation(fields: [clientId], references: [id])
-  teamId        String
-  team          Team      @relation(fields: [teamId], references: [id])
-  teamMemberId  String
-  teamMember    User      @relation("TeamMemberSurveys", fields: [teamMemberId], references: [id])
-  questions     Question[]
   responses     Response[]
+  surveys       Survey[]
+  teams         Team[]
+  company       Company?   @relation(fields: [companyId], references: [id])
+  errorLogs     ErrorLog[]
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String?
+  backupCodes     String[]  @default([])
+  notificationPreferences Json? @default("{\"email\": true, \"push\": true, \"inApp\": true}")
+  pushSubscription Json?
+
+  @@index([companyId])
+  @@map("users")
 }
 
-model Question {
-  id        String   @id @default(cuid())
-  text      String
-  type      String   // "TEXT", "NUMBER", "RATING", "BOOLEAN", "MULTIPLE_CHOICE"
-  required  Boolean  @default(true)
-  order     Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Company {
+  id               String   @id @default(cuid())
+  name             String
+  subscriptionTier String   @default("FREE")
+  status           String   @default("ACTIVE")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  clients          Client[]
+  surveys          Survey[]
+  users            User[]
+  roleTemplates    RoleTemplate[]
 
-  // Relations
-  surveyId  String
-  survey    Survey    @relation(fields: [surveyId], references: [id])
-  responses Answer[]
-}
-
-model Response {
-  id        String   @id @default(cuid())
-  score     Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  surveyId  String
-  survey    Survey    @relation(fields: [surveyId], references: [id])
-  userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  answers   Answer[]
-}
-
-model Answer {
-  id         String   @id @default(cuid())
-  text       String?
-  score      Int?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  // Relations
-  questionId String
-  question   Question @relation(fields: [questionId], references: [id])
-  responseId String
-  response   Response @relation(fields: [responseId], references: [id])
-}
-
-model ErrorLog {
-  id              String   @id @default(cuid())
-  message         String
-  stack           String?
-  componentStack  String?
-  path            String?
-  userId          String?
-  metadata        String?  // Store JSON as string for SQLite
-  createdAt       DateTime @default(now())
-  user            User?    @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([createdAt])
+  @@map("companies")
 }
 
 model Client {
   id        String   @id @default(cuid())
   name      String
-  email     String   @unique
+  email     String
+  phone     String?
+  company   String?
+  notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  // Relations
-  userId    String   @unique
+  userId    String
+  companyId String?
+  Company   Company? @relation(fields: [companyId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
   surveys   Survey[]
+
+  @@map("clients")
+}
+
+model Survey {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      SurveyStatus @default(DRAFT)
+  frequency   String     @default("MONTHLY")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  userId      String
+  clientId    String
+  companyId   String
+  questions   Question[]
+  responses   Response[]
+  client      Client     @relation(fields: [clientId], references: [id])
+  company     Company    @relation(fields: [companyId], references: [id])
+  user        User       @relation(fields: [userId], references: [id])
+
+  @@map("surveys")
+}
+
+model Question {
+  id       String  @id @default(cuid())
+  title    String
+  type     String  @default("TEXT")
+  options  String?
+  required Boolean @default(false)
+  surveyId String
+  survey   Survey  @relation(fields: [surveyId], references: [id])
+
+  @@map("questions")
+}
+
+model Response {
+  id        String   @id @default(cuid())
+  surveyId  String
+  userId    String
+  answers   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  survey    Survey   @relation(fields: [surveyId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([surveyId])
+  @@index([userId])
+  @@map("responses")
 }
 
 model Team {
@@ -129,9 +119,50 @@ model Team {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  // Relations
-  userId    String   @unique
+  userId    String
   user      User     @relation(fields: [userId], references: [id])
-  surveys   Survey[]
+
+  @@map("teams")
+}
+
+model ErrorLog {
+  id             String   @id @default(cuid())
+  message        String
+  stack          String?
+  componentStack String?
+  path           String?
+  userId         String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  user           User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("error_logs")
+}
+
+model RoleTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  permissions String[]
+  company     Company  @relation(fields: [companyId], references: [id])
+  companyId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+enum Role {
+  SUPER_ADMIN
+  COMPANY_ADMIN
+  TEAM_MEMBER
+  CLIENT
+}
+
+enum SurveyStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
 }

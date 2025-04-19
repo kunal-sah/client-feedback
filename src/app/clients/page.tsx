@@ -1,32 +1,40 @@
 'use client';
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 
-type Client = {
+interface Client {
   id: string;
   name: string;
-};
+  email: string;
+  phone: string;
+  company: string;
+  notes: string;
+}
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchClients = async () => {
       try {
         const response = await fetch("/api/clients");
-        if (!response.ok) throw new Error("Failed to fetch clients");
+        if (!response.ok) {
+          throw new Error("Failed to fetch clients");
+        }
         const data = await response.json();
         setClients(data);
       } catch (error) {
         toast({
           title: "Error",
-          description: "Failed to load clients",
+          description: error instanceof Error ? error.message : "Something went wrong",
+          variant: "destructive"
         });
       } finally {
         setIsLoading(false);
@@ -36,24 +44,23 @@ export default function ClientsPage() {
     fetchClients();
   }, [toast]);
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Clients</h1>
-        <Link href="/clients/new">
-          <Button>Add New Client</Button>
-        </Link>
+        <Button onClick={() => router.push("/clients/new")}>
+          Add New Client
+        </Button>
       </div>
 
-      {isLoading ? (
-        <p>Loading clients...</p>
-      ) : clients.length === 0 ? (
+      {clients.length === 0 ? (
         <Card>
-          <CardContent className="py-10 text-center">
-            <p className="text-muted-foreground">No clients found.</p>
-            <Link href="/clients/new">
-              <Button className="mt-4">Add Your First Client</Button>
-            </Link>
+          <CardContent className="py-10">
+            <p className="text-center text-muted-foreground">No clients found.</p>
           </CardContent>
         </Card>
       ) : (
@@ -64,11 +71,12 @@ export default function ClientsPage() {
                 <CardTitle>{client.name}</CardTitle>
               </CardHeader>
               <CardContent>
-                <Link href={`/clients/${client.id}`}>
-                  <Button variant="outline" className="w-full">
-                    View Details
-                  </Button>
-                </Link>
+                <div className="space-y-2">
+                  {client.email && <p><strong>Email:</strong> {client.email}</p>}
+                  {client.phone && <p><strong>Phone:</strong> {client.phone}</p>}
+                  {client.company && <p><strong>Company:</strong> {client.company}</p>}
+                  {client.notes && <p><strong>Notes:</strong> {client.notes}</p>}
+                </div>
               </CardContent>
             </Card>
           ))}
