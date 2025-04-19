@@ -46,7 +46,7 @@ interface SurveyWithRelations {
     options: string | null;
     required: boolean;
   }>;
-  Response: Array<{
+  responses: Array<{
     id: string;
     createdAt: Date;
     answers: any;

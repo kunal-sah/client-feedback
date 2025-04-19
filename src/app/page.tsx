@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { ArrowRight, BarChart3, MessageSquare, Users } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import React from "react";
+import HomeNav from "@/components/layout/home-nav";
+import { Footer } from "@/components/layout/footer";
 import { authOptions } from "../lib/auth";
 
 export default async function Home() {
@@ -16,6 +17,8 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <HomeNav />
+      
       {/* Hero Section */}
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 -z-10" />
@@ -145,6 +148,8 @@ export default async function Home() {
           </Button>
         </div>
       </section>
+      
+      <Footer />
     </div>
   );
 } 

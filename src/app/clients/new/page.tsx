@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { ClientForm } from "@/components/forms/client-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function NewClientPage() {
   const router = useRouter();
@@ -25,8 +26,18 @@ export default function NewClientPage() {
   };
 
   return (
-    <div className="container mx-auto py-10">
-      <ClientForm onSubmit={handleSubmit} />
+    <div className="flex-1 space-y-4 p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight">New Client</h2>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Client Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ClientForm onSubmit={handleSubmit} />
+        </CardContent>
+      </Card>
     </div>
   );
 } 

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Define route access patterns
-const publicRoutes = ["/login", "/register", "/api/auth"];
+const publicRoutes = ["/", "/login", "/register", "/api/auth"];
 const superAdminRoutes = ["/admin", "/api/admin"];
 const companyAdminRoutes = ["/company", "/api/company"];
 const clientRoutes = ["/surveys/respond", "/api/surveys/respond"];

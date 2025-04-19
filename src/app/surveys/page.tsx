@@ -4,6 +4,8 @@ import prisma from "@/lib/prisma";
 import { SurveyList } from "@/components/survey-list";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlusCircle } from "lucide-react";
 
 interface SurveyWithRelations {
   id: string;
@@ -92,16 +94,26 @@ export default async function SurveysPage() {
   });
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Surveys</h1>
+    <div className="flex-1 space-y-4 p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight">Surveys</h2>
         {userRole === "COMPANY_ADMIN" && (
           <Link href="/surveys/new">
-            <Button>Create Survey</Button>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Create Survey
+            </Button>
           </Link>
         )}
       </div>
-      <SurveyList surveys={surveys} />
+      <Card>
+        <CardHeader>
+          <CardTitle>All Surveys</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SurveyList surveys={surveys} />
+        </CardContent>
+      </Card>
     </div>
   );
 } 

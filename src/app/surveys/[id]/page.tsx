@@ -31,7 +31,7 @@ export default async function SurveyPage({ params }: SurveyPageProps) {
           id: "asc",
         },
       },
-      Response: {
+      responses: {
         include: {
           user: true,
         },
