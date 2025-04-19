@@ -53,7 +53,11 @@ export async function POST(req: Request) {
         phone: body.phone,
         company: body.company,
         notes: body.notes,
-        userId: session.user.id,
+        user: {
+          connect: {
+            id: session.user.id,
+          },
+        },
       },
       include: {
         user: true,
